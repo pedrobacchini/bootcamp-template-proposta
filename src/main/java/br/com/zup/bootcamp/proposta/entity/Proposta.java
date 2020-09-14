@@ -1,5 +1,6 @@
 package br.com.zup.bootcamp.proposta.entity;
 
+import br.com.zup.bootcamp.proposta.audit.Auditoria;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,17 +25,25 @@ public class Proposta implements Serializable {
     private Long id;
 
     @Setter
+    @Column(nullable = false)
     private String documento;
 
     @Setter
+    @Column(nullable = false)
     private String email;
 
     @Setter
+    @Column(nullable = false)
     private String nome;
 
     @Setter
+    @Column(nullable = false)
     private String endereco;
 
     @Setter
+    @Column(nullable = false)
     private BigDecimal salario;
+
+    @Embedded
+    private final Auditoria auditoria = new Auditoria();
 }
