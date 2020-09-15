@@ -4,7 +4,7 @@ import br.com.zup.bootcamp.proposta.helper.IntegrationHelper;
 import br.com.zup.bootcamp.proposta.repository.PropostaRepository;
 import br.com.zup.bootcamp.proposta.util.GenerateCpfCnpj;
 import br.com.zup.bootcamp.proposta.util.JsonUtil;
-import br.com.zup.bootcamp.proposta.util.MockUtils;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -15,10 +15,11 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static br.com.zup.bootcamp.proposta.util.IntegrationUtils.buildArguments;
+import static br.com.zup.bootcamp.proposta.util.IntegrationUtils.getIdFromLocation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,6 +30,7 @@ class PropostaIT extends IntegrationHelper {
     private PropostaRepository repository;
 
     @Test
+    @DisplayName("Dado um payload valido uma proposta deve ser criada")
     void GIVEN_ValidPayload_MUST_ReturnCreated() throws Exception {
 
         // given
@@ -43,7 +45,7 @@ class PropostaIT extends IntegrationHelper {
                 .andReturn();
 
         // then
-        var id = MockUtils.getIdFromLocation(criarProposta.getResponse());
+        var id = getIdFromLocation(criarProposta.getResponse());
         var propostaOptional = repository.findById(id);
         assertThat(propostaOptional).isNotEmpty();
         var actual = propostaOptional.get();
@@ -55,14 +57,15 @@ class PropostaIT extends IntegrationHelper {
     }
 
     @ParameterizedTest
-    @MethodSource("provideInvalidData")
-    void GIVEN_InvalidData_MUST_ReturnBadRequest(String documento,
-                                                 String email,
-                                                 String nome,
-                                                 String endereco,
-                                                 BigDecimal salario,
-                                                 String[] errorsFields,
-                                                 String[] errorsDetails) throws Exception {
+    @MethodSource("provedorDadosInvalidos")
+    @DisplayName("Dado um payload invalido deve retornar BAD_REQUEST informando os campos invalidos")
+    void GIVEN_InvalidPayload_MUST_ReturnBadRequest(String documento,
+                                                    String email,
+                                                    String nome,
+                                                    String endereco,
+                                                    BigDecimal salario,
+                                                    String[] errorsFields,
+                                                    String[] errorsDetails) throws Exception {
         // given
         Map<String, Object> payload = new HashMap<>();
         payload.put("documento", documento);
@@ -82,35 +85,26 @@ class PropostaIT extends IntegrationHelper {
                 .andExpect(jsonPath("$.erros[*].erro", containsInAnyOrder(errorsDetails)));
     }
 
-    private static Stream<Arguments> provideInvalidData() {
-
+    private static Stream<Arguments> provedorDadosInvalidos() {
         var propostaValida = propostaValida();
-
-        List<Arguments> argumentos = new ArrayList<>();
-        argumentos.add(buildArguments(propostaValida, 0, null, new String[]{"documento"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 0, "", new String[]{"documento", "documento"}, new String[]{"não deve estar em branco", "CPF/CNPJ inválido!"}));
-        argumentos.add(buildArguments(propostaValida, 0, "02717049181", new String[]{"documento"}, new String[]{"CPF/CNPJ inválido!"}));
-        argumentos.add(buildArguments(propostaValida, 1, null, new String[]{"email"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 1, "", new String[]{"email"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 1, "  ", new String[]{"email", "email"}, new String[]{"não deve estar em branco", "deve ser um endereço de e-mail bem formado"}));
-        argumentos.add(buildArguments(propostaValida, 1, "email@com.", new String[]{"email"}, new String[]{"deve ser um endereço de e-mail bem formado"}));
-        argumentos.add(buildArguments(propostaValida, 1, "emailcom.", new String[]{"email"}, new String[]{"deve ser um endereço de e-mail bem formado"}));
-        argumentos.add(buildArguments(propostaValida, 2, null, new String[]{"nome"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 2, "", new String[]{"nome"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 2, "  ", new String[]{"nome"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 3, null, new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 3, "", new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 3, " ", new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
-        argumentos.add(buildArguments(propostaValida, 4, null, new String[]{"salario"}, new String[]{"não deve ser nulo"}));
-        argumentos.add(buildArguments(propostaValida, 4, BigDecimal.ZERO, new String[]{"salario"}, new String[]{"deve ser maior que 0"}));
-        return argumentos.stream();
-    }
-
-    private static Arguments buildArguments(LinkedHashMap<String, Object> propostaValida, int index, Object invalidValue, String[] errorsFields, String[] errorsDetails) {
-        List<Object> valores = new ArrayList<>(propostaValida.values());
-        valores.set(index, invalidValue);
-        valores.addAll(Arrays.asList(errorsFields, errorsDetails));
-        return arguments(valores.toArray());
+        List<Arguments> arguments = new ArrayList<>();
+        arguments.add(buildArguments(propostaValida, 0, null, new String[]{"documento"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 0, "", new String[]{"documento", "documento"}, new String[]{"não deve estar em branco", "CPF/CNPJ inválido!"}));
+        arguments.add(buildArguments(propostaValida, 0, "02717049181", new String[]{"documento"}, new String[]{"CPF/CNPJ inválido!"}));
+        arguments.add(buildArguments(propostaValida, 1, null, new String[]{"email"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 1, "", new String[]{"email"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 1, "  ", new String[]{"email", "email"}, new String[]{"não deve estar em branco", "deve ser um endereço de e-mail bem formado"}));
+        arguments.add(buildArguments(propostaValida, 1, "email@com.", new String[]{"email"}, new String[]{"deve ser um endereço de e-mail bem formado"}));
+        arguments.add(buildArguments(propostaValida, 1, "emailcom.", new String[]{"email"}, new String[]{"deve ser um endereço de e-mail bem formado"}));
+        arguments.add(buildArguments(propostaValida, 2, null, new String[]{"nome"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 2, "", new String[]{"nome"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 2, "  ", new String[]{"nome"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 3, null, new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 3, "", new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 3, " ", new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
+        arguments.add(buildArguments(propostaValida, 4, null, new String[]{"salario"}, new String[]{"não deve ser nulo"}));
+        arguments.add(buildArguments(propostaValida, 4, BigDecimal.ZERO, new String[]{"salario"}, new String[]{"deve ser maior que 0"}));
+        return arguments.stream();
     }
 
     private static LinkedHashMap<String, Object> propostaValida() {
