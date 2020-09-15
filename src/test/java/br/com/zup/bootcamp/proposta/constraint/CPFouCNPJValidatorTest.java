@@ -1,6 +1,5 @@
-package br.com.zup.bootcamp.proposta;
+package br.com.zup.bootcamp.proposta.constraint;
 
-import br.com.zup.bootcamp.proposta.constraint.CPFouCNPJ;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
