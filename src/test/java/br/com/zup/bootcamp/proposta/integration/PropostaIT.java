@@ -59,22 +59,9 @@ class PropostaIT extends IntegrationHelper {
     @ParameterizedTest
     @MethodSource("provedorDadosInvalidos")
     @DisplayName("Dado um payload invalido deve retornar BAD_REQUEST informando os campos invalidos")
-    void GIVEN_InvalidPayload_MUST_ReturnBadRequest(String documento,
-                                                    String email,
-                                                    String nome,
-                                                    String endereco,
-                                                    BigDecimal salario,
+    void GIVEN_InvalidPayload_MUST_ReturnBadRequest(Map<String, Object> payload,
                                                     String[] errorsFields,
                                                     String[] errorsDetails) throws Exception {
-        // given
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("documento", documento);
-        payload.put("email", email);
-        payload.put("nome", nome);
-        payload.put("endereco", endereco);
-        payload.put("salario", salario);
-
-        // when
         mockMvc.perform(post("/propostas")
                 .contentType("application/json")
                 .content(JsonUtil.toJson(payload)))
@@ -88,22 +75,22 @@ class PropostaIT extends IntegrationHelper {
     private static Stream<Arguments> provedorDadosInvalidos() {
         var propostaValida = propostaValida();
         List<Arguments> arguments = new ArrayList<>();
-        arguments.add(buildArguments(propostaValida, 0, null, new String[]{"documento"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 0, "", new String[]{"documento", "documento"}, new String[]{"não deve estar em branco", "CPF/CNPJ inválido!"}));
-        arguments.add(buildArguments(propostaValida, 0, "02717049181", new String[]{"documento"}, new String[]{"CPF/CNPJ inválido!"}));
-        arguments.add(buildArguments(propostaValida, 1, null, new String[]{"email"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 1, "", new String[]{"email"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 1, "  ", new String[]{"email", "email"}, new String[]{"não deve estar em branco", "deve ser um endereço de e-mail bem formado"}));
-        arguments.add(buildArguments(propostaValida, 1, "email@com.", new String[]{"email"}, new String[]{"deve ser um endereço de e-mail bem formado"}));
-        arguments.add(buildArguments(propostaValida, 1, "emailcom.", new String[]{"email"}, new String[]{"deve ser um endereço de e-mail bem formado"}));
-        arguments.add(buildArguments(propostaValida, 2, null, new String[]{"nome"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 2, "", new String[]{"nome"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 2, "  ", new String[]{"nome"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 3, null, new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 3, "", new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 3, " ", new String[]{"endereco"}, new String[]{"não deve estar em branco"}));
-        arguments.add(buildArguments(propostaValida, 4, null, new String[]{"salario"}, new String[]{"não deve ser nulo"}));
-        arguments.add(buildArguments(propostaValida, 4, BigDecimal.ZERO, new String[]{"salario"}, new String[]{"deve ser maior que 0"}));
+        arguments.add(buildArguments(propostaValida, "documento", null, "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "documento", "", "não deve estar em branco", "CPF/CNPJ inválido!"));
+        arguments.add(buildArguments(propostaValida, "documento", "02717049181", "CPF/CNPJ inválido!"));
+        arguments.add(buildArguments(propostaValida, "email", null, "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "email", "", "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "email", "  ", "não deve estar em branco", "deve ser um endereço de e-mail bem formado"));
+        arguments.add(buildArguments(propostaValida, "email", "email@com.", "deve ser um endereço de e-mail bem formado"));
+        arguments.add(buildArguments(propostaValida, "email", "emailcom.", "deve ser um endereço de e-mail bem formado"));
+        arguments.add(buildArguments(propostaValida, "nome", null, "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "nome", "", "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "nome", "  ", "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "endereco", null, "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "endereco", "", "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "endereco", " ", "não deve estar em branco"));
+        arguments.add(buildArguments(propostaValida, "salario", null, "não deve ser nulo"));
+        arguments.add(buildArguments(propostaValida, "salario", BigDecimal.ZERO, "deve ser maior que 0"));
         return arguments.stream();
     }
 

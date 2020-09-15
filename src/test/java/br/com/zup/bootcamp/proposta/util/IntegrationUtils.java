@@ -18,10 +18,10 @@ public class IntegrationUtils {
         return Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
     }
 
-    public static Arguments buildArguments(LinkedHashMap<String, Object> map, int index, Object invalidValue, String[] errorsFields, String[] errorsDetails) {
-        var values = new ArrayList<>(map.values());
-        values.set(index, invalidValue);
-        values.addAll(Arrays.asList(errorsFields, errorsDetails));
-        return arguments(values.toArray());
+    public static Arguments buildArguments(LinkedHashMap<String, Object> map, String field, Object invalidValue, String... errorsDetails) {
+        var newMap = new LinkedHashMap<>(map);
+        newMap.put(field, invalidValue);
+        String[] fields = Arrays.stream(errorsDetails).map(s -> field).toArray(String[]::new);
+        return arguments(newMap, fields, errorsDetails);
     }
 }
