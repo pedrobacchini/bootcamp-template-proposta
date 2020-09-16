@@ -58,18 +58,34 @@ class PropostaIT extends IntegrationHelper {
 
     @ParameterizedTest
     @MethodSource("provedorDadosInvalidos")
-    @DisplayName("Dado um payload invalido deve retornar BAD_REQUEST informando os campos invalidos")
+    @DisplayName("Dado um conjunto de payload's invalido deve retornar BAD_REQUEST informando os campos invalidos")
     void GIVEN_InvalidPayload_MUST_ReturnBadRequest(Map<String, Object> payload,
                                                     String[] errorsFields,
                                                     String[] errorsDetails) throws Exception {
         mockMvc.perform(post("/propostas")
-                .contentType("application/json")
+                .contentType(APPLICATION_JSON)
                 .content(JsonUtil.toJson(payload)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andExpect(jsonPath("$.mensagem", is("Erro de validação")))
                 .andExpect(jsonPath("$.erros[*].campo", containsInAnyOrder(errorsFields)))
                 .andExpect(jsonPath("$.erros[*].erro", containsInAnyOrder(errorsDetails)));
+    }
+
+    @Test
+    @DisplayName("Dado um payload valido uma proposta duplicada deve retornar UNPROCESSABLE_ENTITY")
+    void GIVEN_ValidPayload_AND_Duplicated_MUST_ReturnUnprocessableEntity() throws Exception {
+        // given
+        var expected = propostaValida();
+        expected.put("documento", "45518154000108");
+
+        // when
+        mockMvc.perform(post("/propostas")
+                .contentType(APPLICATION_JSON)
+                .content(JsonUtil.toJson(expected)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem", is("Proposta já cadastrada")));
     }
 
     private static Stream<Arguments> provedorDadosInvalidos() {

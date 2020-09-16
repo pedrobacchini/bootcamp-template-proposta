@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Tag("integration")
 @SpringBootTest
 @AutoConfigureMockMvc
+@Sql("/fixture/dataset.sql")
 public abstract class IntegrationHelper extends TestHelper {
 
     @Autowired
