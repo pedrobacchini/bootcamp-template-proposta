@@ -46,4 +46,13 @@ public class Proposta implements Serializable {
 
     @Embedded
     private final Auditoria auditoria = new Auditoria();
+
+    public Proposta(Long id, String documento, String email, String nome, String endereco, BigDecimal salario) {
+        this.id = id;
+        this.documento = documento;
+        this.email = email;
+        this.nome = nome;
+        this.endereco = endereco;
+        this.salario = salario;
+    }
 }

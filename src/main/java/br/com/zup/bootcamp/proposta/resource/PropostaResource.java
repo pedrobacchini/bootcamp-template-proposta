@@ -2,29 +2,31 @@ package br.com.zup.bootcamp.proposta.resource;
 
 import br.com.zup.bootcamp.proposta.dto.PropostaInput;
 import br.com.zup.bootcamp.proposta.entity.Proposta;
-import br.com.zup.bootcamp.proposta.event.RecursoCriadoEvent;
 import br.com.zup.bootcamp.proposta.service.PropostaService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @RestController
-@RequestMapping("/propostas")
 @RequiredArgsConstructor
 public class PropostaResource {
 
-    private final PropostaService propostaService;
-    private final ApplicationEventPublisher publicador;
+    public static final String ENDPOINT_PATH = "/propostas";
 
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void criar(@Valid @RequestBody PropostaInput propostaInput, HttpServletResponse resposta) {
+    private final PropostaService propostaService;
+
+    @PostMapping(path = ENDPOINT_PATH, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> criar(@Valid @RequestBody PropostaInput propostaInput) throws URISyntaxException {
         Proposta proposta = propostaService.criar(propostaInput);
-        publicador.publishEvent(new RecursoCriadoEvent(this, resposta, proposta.getId()));
+        return ResponseEntity
+                .created(new URI(String.format("%s/%s", ENDPOINT_PATH, proposta.getId())))
+                .build();
     }
 }

@@ -17,9 +17,11 @@ public class PropostaServiceImpl implements PropostaService {
 
     @Override
     public Proposta criar(PropostaInput propostaInput) {
-        propostaRepository.findByDocumento(propostaInput.getDocumento())
-                .ifPresent(proposta -> { throw new PropostaDuplicadaException(); });
-        Proposta proposta = propostaMapper.toEntity(propostaInput);
-        return propostaRepository.save(proposta);
+        if (propostaRepository.findByDocumento(propostaInput.getDocumento()).isPresent()) {
+            throw new PropostaDuplicadaException();
+        } else {
+            Proposta proposta = propostaMapper.toEntity(propostaInput);
+            return propostaRepository.save(proposta);
+        }
     }
 }

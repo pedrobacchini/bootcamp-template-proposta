@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static br.com.zup.bootcamp.proposta.resource.PropostaResource.ENDPOINT_PATH;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -37,7 +38,7 @@ class PropostaIT extends IntegrationHelper {
         var expected = propostaValida();
 
         // when
-        var criarProposta = mockMvc.perform(post("/propostas")
+        var criarProposta = mockMvc.perform(post(ENDPOINT_PATH)
                 .contentType(APPLICATION_JSON)
                 .content(JsonUtil.toJson(expected)))
                 .andExpect(status().isCreated())
@@ -62,7 +63,7 @@ class PropostaIT extends IntegrationHelper {
     void GIVEN_InvalidPayload_MUST_ReturnBadRequest(Map<String, Object> payload,
                                                     String[] errorsFields,
                                                     String[] errorsDetails) throws Exception {
-        mockMvc.perform(post("/propostas")
+        mockMvc.perform(post(ENDPOINT_PATH)
                 .contentType(APPLICATION_JSON)
                 .content(JsonUtil.toJson(payload)))
                 .andExpect(status().isBadRequest())
@@ -80,7 +81,7 @@ class PropostaIT extends IntegrationHelper {
         expected.put("documento", "45518154000108");
 
         // when
-        mockMvc.perform(post("/propostas")
+        mockMvc.perform(post(ENDPOINT_PATH)
                 .contentType(APPLICATION_JSON)
                 .content(JsonUtil.toJson(expected)))
                 .andExpect(status().isUnprocessableEntity())
