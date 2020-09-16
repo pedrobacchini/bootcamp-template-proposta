@@ -32,7 +32,7 @@ class PropostaResourceTest extends TestHelper {
         var endereco = faker.address().streetAddress();
         var salario = BigDecimal.valueOf(faker.number().randomDouble(2, 1L, 10000L));
         var propostaInput = new PropostaInput(documento, email, nome, endereco, salario);
-        Proposta expect = new Proposta(id, documento, email, nome, endereco, salario);
+        var expect = new Proposta(id, documento, email, nome, endereco, salario);
 
         var propostaService = mock(PropostaServiceImpl.class);
         when(propostaService.criar(propostaInput)).thenReturn(expect);
