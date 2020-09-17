@@ -1,5 +1,6 @@
 package br.com.zup.bootcamp.proposta.integration;
 
+import br.com.zup.bootcamp.proposta.enumerated.StatusProposta;
 import br.com.zup.bootcamp.proposta.helper.IntegrationHelper;
 import br.com.zup.bootcamp.proposta.repository.PropostaRepository;
 import br.com.zup.bootcamp.proposta.util.GenerateCpfCnpj;
@@ -55,6 +56,7 @@ class PropostaIT extends IntegrationHelper {
         assertThat(actual.getNome()).isEqualTo(expected.get("nome"));
         assertThat(actual.getEndereco()).isEqualTo(expected.get("endereco"));
         assertThat(actual.getSalario()).isEqualTo(expected.get("salario"));
+        assertThat(actual.getStatus()).isEqualTo(StatusProposta.ELEGIVEL);
     }
 
     @ParameterizedTest

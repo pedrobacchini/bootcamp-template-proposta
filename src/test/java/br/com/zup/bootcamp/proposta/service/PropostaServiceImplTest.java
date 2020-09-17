@@ -1,10 +1,14 @@
 package br.com.zup.bootcamp.proposta.service;
 
+import br.com.zup.bootcamp.proposta.dto.AnaliseResponse;
 import br.com.zup.bootcamp.proposta.dto.PropostaInput;
 import br.com.zup.bootcamp.proposta.entity.Proposta;
+import br.com.zup.bootcamp.proposta.enumerated.StatusAnalise;
+import br.com.zup.bootcamp.proposta.enumerated.StatusProposta;
 import br.com.zup.bootcamp.proposta.exception.PropostaDuplicadaException;
 import br.com.zup.bootcamp.proposta.helper.TestHelper;
 import br.com.zup.bootcamp.proposta.mapper.PropostaMapper;
+import br.com.zup.bootcamp.proposta.proxy.AnaliseProxy;
 import br.com.zup.bootcamp.proposta.repository.PropostaRepository;
 import br.com.zup.bootcamp.proposta.util.GenerateCpfCnpj;
 import org.junit.jupiter.api.*;
@@ -22,13 +26,15 @@ class PropostaServiceImplTest extends TestHelper {
     PropostaRepository propostaRepository;
     PropostaMapper propostaMapper;
     PropostaService propostaService;
+    AnaliseProxy analiseProxy;
     final ArgumentCaptor<Proposta> captor = ArgumentCaptor.forClass(Proposta.class);
 
     @BeforeEach
     void setup() {
         propostaRepository = mock(PropostaRepository.class);
         propostaMapper = mock(PropostaMapper.class);
-        propostaService = new PropostaServiceImpl(propostaMapper, propostaRepository);
+        analiseProxy = mock(AnaliseProxy.class);
+        propostaService = new PropostaServiceImpl(propostaMapper, propostaRepository, analiseProxy);
     }
 
     @Test
@@ -38,9 +44,9 @@ class PropostaServiceImplTest extends TestHelper {
     }
 
     @Test
-    @DisplayName("Dado uma proposta valida esse proposta deve ser criada no banco de dados")
+    @DisplayName("Dado uma proposta valida essa proposta deve ser criada no banco de dados")
     void GIVEN_ValidProposta_MUST_CreateCompanyInDatabase() {
-        var id = 1L;
+        Long id = 1L;
         var documento = GenerateCpfCnpj.cnpj(false);
         var email = faker.internet().emailAddress();
         var nome = faker.name().fullName();
@@ -48,12 +54,16 @@ class PropostaServiceImplTest extends TestHelper {
         var salario = BigDecimal.valueOf(faker.number().randomDouble(2, 1L, 10000L));
         var propostaInput = new PropostaInput(documento, email, nome, endereco, salario);
         var expect = new Proposta(id, documento, email, nome, endereco, salario);
+        var analiseResponse = new AnaliseResponse(documento, nome, id.toString(), StatusAnalise.SEM_RESTRICAO);
         when(propostaMapper.toEntity(propostaInput)).thenReturn(expect);
+        when(propostaRepository.save(expect)).thenReturn(expect);
+        when(analiseProxy.analisar(any())).thenReturn(analiseResponse);
 
         propostaService.criar(propostaInput);
 
         verify(propostaMapper, times(1)).toEntity(propostaInput);
-        verify(propostaRepository, times(1)).save(captor.capture());
+        verify(analiseProxy, times(1)).analisar(any());
+        verify(propostaRepository, times(2)).save(captor.capture());
         Proposta actual = captor.getValue();
         assertThat(actual).isNotNull();
         assertThat(actual.getId()).isEqualTo(id);
@@ -61,6 +71,7 @@ class PropostaServiceImplTest extends TestHelper {
         assertThat(actual.getNome()).isEqualTo(nome);
         assertThat(actual.getEndereco()).isEqualTo(endereco);
         assertThat(actual.getSalario()).isEqualTo(salario);
+        assertThat(actual.getStatus()).isEqualTo(StatusProposta.ELEGIVEL);
     }
 
     @Test

@@ -1,6 +1,8 @@
 package br.com.zup.bootcamp.proposta.entity;
 
 import br.com.zup.bootcamp.proposta.audit.Auditoria;
+import br.com.zup.bootcamp.proposta.enumerated.StatusAnalise;
+import br.com.zup.bootcamp.proposta.enumerated.StatusProposta;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -44,6 +46,9 @@ public class Proposta implements Serializable {
     @Column(nullable = false)
     private BigDecimal salario;
 
+    @Enumerated(value = EnumType.STRING)
+    private StatusProposta status;
+
     @Embedded
     private final Auditoria auditoria = new Auditoria();
 
@@ -54,5 +59,9 @@ public class Proposta implements Serializable {
         this.nome = nome;
         this.endereco = endereco;
         this.salario = salario;
+    }
+
+    public void atualizarStatus(StatusAnalise resultadoSolicitacao) {
+        this.status = resultadoSolicitacao == StatusAnalise.SEM_RESTRICAO ? StatusProposta.ELEGIVEL : StatusProposta.NAO_ELEGIVEL;
     }
 }

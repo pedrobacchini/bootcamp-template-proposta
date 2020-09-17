@@ -3,3 +3,5 @@ spring:
     active: test
   messages:
     basename: mensagens
+analise:
+  base-url: http://localhost:9999/api/
