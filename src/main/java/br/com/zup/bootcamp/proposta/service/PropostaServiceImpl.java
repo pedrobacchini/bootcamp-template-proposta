@@ -9,8 +9,10 @@ import br.com.zup.bootcamp.proposta.mapper.PropostaMapper;
 import br.com.zup.bootcamp.proposta.proxy.AnaliseProxy;
 import br.com.zup.bootcamp.proposta.repository.PropostaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class PropostaServiceImpl implements PropostaService {
@@ -26,9 +28,11 @@ public class PropostaServiceImpl implements PropostaService {
         } else {
             Proposta proposta = propostaMapper.toEntity(propostaInput);
             proposta = propostaRepository.save(proposta);
-            AnaliseResponse response = analiseProxy.analisar(new AnaliseRequest(proposta.getDocumento(), proposta.getNome(), proposta.getId().toString()));
+            AnaliseResponse response = analiseProxy.analisar(AnaliseRequest.fromProposta(proposta));
             proposta.atualizarStatus(response.getResultadoSolicitacao());
-            return propostaRepository.save(proposta);
+            proposta = propostaRepository.save(proposta);
+            log.info("Proposta documento={} salário={} criada com sucesso!", proposta.getDocumento(), proposta.getSalario());
+            return proposta;
         }
     }
 }

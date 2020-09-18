@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-@FeignClient(name = "analise-service", url = "${analise.base-url}", decode404 = true)
+@FeignClient(name = "analise-service", url = "${analise.base-url}")
 public interface AnaliseProxy {
 
     @RequestMapping(method = RequestMethod.POST, value = "/solicitacao")
