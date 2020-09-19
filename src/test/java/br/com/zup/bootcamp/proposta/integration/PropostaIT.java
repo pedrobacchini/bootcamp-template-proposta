@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -57,6 +58,8 @@ class PropostaIT extends IntegrationHelper {
         assertThat(actual.getEndereco()).isEqualTo(expected.get("endereco"));
         assertThat(actual.getSalario()).isEqualTo(expected.get("salario"));
         assertThat(actual.getStatus()).isEqualTo(StatusProposta.ELEGIVEL);
+        assertThat(actual.getAuditoria().getDataCriacao()).isBeforeOrEqualTo(LocalDateTime.now());
+        assertThat(actual.getAuditoria().getDataUltimaModificacao()).isBeforeOrEqualTo(LocalDateTime.now());
     }
 
     @ParameterizedTest

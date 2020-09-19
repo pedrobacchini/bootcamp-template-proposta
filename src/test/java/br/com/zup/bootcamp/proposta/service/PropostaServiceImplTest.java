@@ -15,6 +15,7 @@ import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +55,8 @@ class PropostaServiceImplTest extends TestHelper {
         var salario = BigDecimal.valueOf(faker.number().randomDouble(2, 1L, 10000L));
         var propostaInput = new PropostaInput(documento, email, nome, endereco, salario);
         var expect = new Proposta(id, documento, email, nome, endereco, salario);
+        expect.getAuditoria().setDataCriacao(LocalDateTime.now());
+        expect.getAuditoria().setDataUltimaModificacao(LocalDateTime.now());
         var analiseResponse = new AnaliseResponse(documento, nome, id.toString(), StatusAnalise.SEM_RESTRICAO);
         when(propostaMapper.toEntity(propostaInput)).thenReturn(expect);
         when(propostaRepository.save(expect)).thenReturn(expect);
@@ -72,6 +75,8 @@ class PropostaServiceImplTest extends TestHelper {
         assertThat(actual.getEndereco()).isEqualTo(endereco);
         assertThat(actual.getSalario()).isEqualTo(salario);
         assertThat(actual.getStatus()).isEqualTo(StatusProposta.ELEGIVEL);
+        assertThat(actual.getAuditoria().getDataCriacao()).isEqualTo(expect.getAuditoria().getDataCriacao());
+        assertThat(actual.getAuditoria().getDataUltimaModificacao()).isEqualTo(expect.getAuditoria().getDataUltimaModificacao());
     }
 
     @Test
