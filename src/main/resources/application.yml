@@ -13,5 +13,16 @@ feign:
       AnaliseProxy:
         read-timeout: 100
         connect-timeout: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+        exclude: env,beans
+      cors:
+        allowed-origins: https://example.com
+        allowed-methods: GET
+
 analise:
   base-url: ${BOOTCAMP_ANALISE_BASE_URL:http://localhost:9999/api/}

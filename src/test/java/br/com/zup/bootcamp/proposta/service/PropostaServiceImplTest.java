@@ -75,6 +75,7 @@ class PropostaServiceImplTest extends TestHelper {
         assertThat(actual.getEndereco()).isEqualTo(endereco);
         assertThat(actual.getSalario()).isEqualTo(salario);
         assertThat(actual.getStatus()).isEqualTo(StatusProposta.ELEGIVEL);
+        assertThat(actual.getAuditoria()).isNotNull();
         assertThat(actual.getAuditoria().getDataCriacao()).isEqualTo(expect.getAuditoria().getDataCriacao());
         assertThat(actual.getAuditoria().getDataUltimaModificacao()).isEqualTo(expect.getAuditoria().getDataUltimaModificacao());
     }

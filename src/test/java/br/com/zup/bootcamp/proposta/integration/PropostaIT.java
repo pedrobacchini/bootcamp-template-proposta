@@ -58,6 +58,7 @@ class PropostaIT extends IntegrationHelper {
         assertThat(actual.getEndereco()).isEqualTo(expected.get("endereco"));
         assertThat(actual.getSalario()).isEqualTo(expected.get("salario"));
         assertThat(actual.getStatus()).isEqualTo(StatusProposta.ELEGIVEL);
+        assertThat(actual.getAuditoria()).isNotNull();
         assertThat(actual.getAuditoria().getDataCriacao()).isBeforeOrEqualTo(LocalDateTime.now());
         assertThat(actual.getAuditoria().getDataUltimaModificacao()).isBeforeOrEqualTo(LocalDateTime.now());
     }
