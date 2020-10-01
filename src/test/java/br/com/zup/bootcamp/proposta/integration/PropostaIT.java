@@ -3,7 +3,6 @@ package br.com.zup.bootcamp.proposta.integration;
 import br.com.zup.bootcamp.proposta.enumerated.StatusProposta;
 import br.com.zup.bootcamp.proposta.helper.IntegrationHelper;
 import br.com.zup.bootcamp.proposta.repository.PropostaRepository;
-import br.com.zup.bootcamp.proposta.util.GenerateCpfCnpj;
 import br.com.zup.bootcamp.proposta.util.JsonUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,16 +13,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
+import static br.com.zup.bootcamp.proposta.resource.PropostaResource.ENDPOINT_PATH;
 import static br.com.zup.bootcamp.proposta.util.IntegrationUtils.buildArguments;
 import static br.com.zup.bootcamp.proposta.util.IntegrationUtils.getIdFromLocation;
+import static br.com.zup.bootcamp.proposta.util.TestUtils.propostaValidaPayload;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static br.com.zup.bootcamp.proposta.resource.PropostaResource.ENDPOINT_PATH;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -37,7 +39,7 @@ class PropostaIT extends IntegrationHelper {
     void GIVEN_ValidPayload_MUST_ReturnCreated() throws Exception {
 
         // given
-        var expected = propostaValida();
+        var expected = propostaValidaPayload();
 
         // when
         var criarProposta = mockMvc.perform(post(ENDPOINT_PATH)
@@ -63,6 +65,22 @@ class PropostaIT extends IntegrationHelper {
         assertThat(actual.getAuditoria().getDataUltimaModificacao()).isBeforeOrEqualTo(LocalDateTime.now());
     }
 
+    @Test
+    @DisplayName("Dado um payload valido uma proposta duplicada deve retornar UNPROCESSABLE_ENTITY")
+    void GIVEN_ValidPayload_AND_Duplicated_MUST_ReturnUnprocessableEntity() throws Exception {
+        // given
+        var expected = propostaValidaPayload();
+        expected.put("documento", "45518154000108");
+
+        // when
+        mockMvc.perform(post(ENDPOINT_PATH)
+                .contentType(APPLICATION_JSON)
+                .content(JsonUtil.toJson(expected)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem", is("Proposta já cadastrada")));
+    }
+
     @ParameterizedTest
     @MethodSource("provedorDadosInvalidos")
     @DisplayName("Dado um conjunto de payload's invalido deve retornar BAD_REQUEST informando os campos invalidos")
@@ -79,24 +97,8 @@ class PropostaIT extends IntegrationHelper {
                 .andExpect(jsonPath("$.erros[*].erro", containsInAnyOrder(errorsDetails)));
     }
 
-    @Test
-    @DisplayName("Dado um payload valido uma proposta duplicada deve retornar UNPROCESSABLE_ENTITY")
-    void GIVEN_ValidPayload_AND_Duplicated_MUST_ReturnUnprocessableEntity() throws Exception {
-        // given
-        var expected = propostaValida();
-        expected.put("documento", "45518154000108");
-
-        // when
-        mockMvc.perform(post(ENDPOINT_PATH)
-                .contentType(APPLICATION_JSON)
-                .content(JsonUtil.toJson(expected)))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(jsonPath("$.mensagem", is("Proposta já cadastrada")));
-    }
-
     private static Stream<Arguments> provedorDadosInvalidos() {
-        var propostaValida = propostaValida();
+        var propostaValida = propostaValidaPayload();
         List<Arguments> arguments = new ArrayList<>();
         arguments.add(buildArguments(propostaValida, "documento", null, "não deve estar em branco"));
         arguments.add(buildArguments(propostaValida, "documento", "", "não deve estar em branco", "CPF/CNPJ inválido!"));
@@ -115,22 +117,5 @@ class PropostaIT extends IntegrationHelper {
         arguments.add(buildArguments(propostaValida, "salario", null, "não deve ser nulo"));
         arguments.add(buildArguments(propostaValida, "salario", BigDecimal.ZERO, "deve ser maior que 0"));
         return arguments.stream();
-    }
-
-    private static LinkedHashMap<String, Object> propostaValida() {
-        var documento = GenerateCpfCnpj.cnpj(false);
-        var email = faker.internet().emailAddress();
-        var nome = faker.name().fullName();
-        var endereco = faker.address().streetAddress();
-        var salario = BigDecimal.valueOf(faker.number().randomDouble(2, 1L, 10000L));
-
-        var payload = new LinkedHashMap<String, Object>();
-        payload.put("documento", documento);
-        payload.put("email", email);
-        payload.put("nome", nome);
-        payload.put("endereco", endereco);
-        payload.put("salario", salario);
-
-        return payload;
     }
 }

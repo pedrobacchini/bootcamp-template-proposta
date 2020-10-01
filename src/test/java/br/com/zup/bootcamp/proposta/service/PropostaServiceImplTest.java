@@ -1,6 +1,5 @@
 package br.com.zup.bootcamp.proposta.service;
 
-import br.com.zup.bootcamp.proposta.dto.AnaliseResponse;
 import br.com.zup.bootcamp.proposta.dto.PropostaInput;
 import br.com.zup.bootcamp.proposta.entity.Proposta;
 import br.com.zup.bootcamp.proposta.enumerated.StatusAnalise;
@@ -8,10 +7,12 @@ import br.com.zup.bootcamp.proposta.enumerated.StatusProposta;
 import br.com.zup.bootcamp.proposta.exception.PropostaDuplicadaException;
 import br.com.zup.bootcamp.proposta.helper.TestHelper;
 import br.com.zup.bootcamp.proposta.mapper.PropostaMapper;
-import br.com.zup.bootcamp.proposta.proxy.AnaliseProxy;
 import br.com.zup.bootcamp.proposta.repository.PropostaRepository;
 import br.com.zup.bootcamp.proposta.util.GenerateCpfCnpj;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
@@ -24,19 +25,11 @@ import static org.mockito.Mockito.*;
 @Tag("unit")
 class PropostaServiceImplTest extends TestHelper {
 
-    PropostaRepository propostaRepository;
-    PropostaMapper propostaMapper;
-    PropostaService propostaService;
-    AnaliseProxy analiseProxy;
+    PropostaRepository propostaRepository = mock(PropostaRepository.class);
+    PropostaMapper propostaMapper = mock(PropostaMapper.class);
+    AnaliseFinanceiraService analiseFinanceiraService = mock(AnaliseFinanceiraService.class);
+    PropostaService propostaService = new PropostaServiceImpl(propostaMapper, propostaRepository, analiseFinanceiraService);
     final ArgumentCaptor<Proposta> captor = ArgumentCaptor.forClass(Proposta.class);
-
-    @BeforeEach
-    void setup() {
-        propostaRepository = mock(PropostaRepository.class);
-        propostaMapper = mock(PropostaMapper.class);
-        analiseProxy = mock(AnaliseProxy.class);
-        propostaService = new PropostaServiceImpl(propostaMapper, propostaRepository, analiseProxy);
-    }
 
     @Test
     @DisplayName("Deve implementar PropostaService")
@@ -57,15 +50,14 @@ class PropostaServiceImplTest extends TestHelper {
         var expect = new Proposta(id, documento, email, nome, endereco, salario);
         expect.getAuditoria().setDataCriacao(LocalDateTime.now());
         expect.getAuditoria().setDataUltimaModificacao(LocalDateTime.now());
-        var analiseResponse = new AnaliseResponse(documento, nome, id.toString(), StatusAnalise.SEM_RESTRICAO);
         when(propostaMapper.toEntity(propostaInput)).thenReturn(expect);
         when(propostaRepository.save(expect)).thenReturn(expect);
-        when(analiseProxy.analisar(any())).thenReturn(analiseResponse);
+        when(analiseFinanceiraService.analisar(any())).thenReturn(StatusAnalise.SEM_RESTRICAO);
 
         propostaService.criar(propostaInput);
 
         verify(propostaMapper, times(1)).toEntity(propostaInput);
-        verify(analiseProxy, times(1)).analisar(any());
+        verify(analiseFinanceiraService, times(1)).analisar(any());
         verify(propostaRepository, times(2)).save(captor.capture());
         Proposta actual = captor.getValue();
         assertThat(actual).isNotNull();
